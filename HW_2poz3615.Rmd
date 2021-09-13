@@ -1,0 +1,109 @@
+---
+title: "HW_2poz3615"
+author: "Piper Zimmerman"
+date: "September 9, 2021"
+output: pdf_document
+header-includes:
+   - \usepackage{enumitem}
+---
+2.
+a. In this class, I am hoping to learn how to use R more proficiently without having to look the majority of what I'm coding up. This is my first time using R Markdown, so I'm excited to get familiar with that. 
+```{r}
+Objectives<-list("Loops","Data Cleaning","Creating Plots from Loops and Data Analysis")
+Objectives
+```
+
+b. 
+\begin{equation} 
+f(x|a,b)=\frac{1}{b-a} \: \: a \leq x\leq b
+\end{equation}
+
+\begin{equation}
+f(x|\alpha,\beta)=\frac{1}{\Gamma (\alpha)\beta^\alpha} x^{\alpha-1}e^{-\frac{x}{\beta}}\: \: 0 \leq x < \infty,\: \: \alpha,\beta>0
+\end{equation}
+
+\begin{equation}
+f(x|\beta)=\frac{1}{\beta}e^{\frac{-x}{\beta}} \: \: 0\leq x < \infty, \: \: \beta>0
+\end{equation}
+
+3. 
+\begin{enumerate}[label=(\arabic*)]
+  \item For Every Result, Keep Track of How It Was Produced- Make sure you keep track of anything that might influence how you got a result, such as a parameter or input. A challenge in performing this step could be labeling and keeping everything organized so you know which code gave you which results.
+  \item Avoid Manual Data Manipulation Steps- You should rely on the execution of the programs rather than manually modifying data. A challenge in performing this step could be trying to fix something the easy way manually instead of trying to work it out through the program.
+  \item Archive the Exact Versions of All External Programs Used- Always keep the version of the program that you used to create the original result. A challenge in performing this step could be if your computer won't run the version of the program anymore.
+  \item Version Control All Custom Scripts- Archive all of your codes to ensure that you have the one that gave the intended results. A challenge in performing this step could be keeping the scripts organized and easy to find.
+  \item Record All Intermediate Results, When Possible in Standardized Formats- Store all your results on the way as they might be helpful when you are looking back. A challenge in performing this step could be having too many results that they get mixed up and hard to find.
+  \item For Analyses That Include Randomness, Note Underlying Random Seeds- If using randomness, the results will vary unless you set the seed the same, so take note of the seed and which steps involve randomness. A challenge in performing this step could be picking out all the steps with randomness. If one is missed, and the seed is not set, it will provide different results.
+  \item Always Store Raw Data Behind Plots- Saving raw data behind the plot will reduce time and effort needed to modify the plot in the future. A challenge in performing this step could be keeping the data organized in order to make quick adjustments to the plots.
+  \item Generate Hierarchical Analysis Output, Allowing Layers of Increasing Detail to Be Inspected- If you are using summarized results, you should also look at the data that is underlying the summaries. A challenge in performing this step could be if the summarized data doesn't have an option to see the full set.
+  \item Connect Textual Statements to Underlying Results- It is important to have more than just the interpretations in text on a paper. The data and results should be easily accessible. A challenge in performing this step could be finding a way to make the data accessible while preserving the professionalism of the paper and not straying from the topic at hand.
+  \item Provide Public Access to Scripts, Runs, and Results- Everything should be made public and easily accessible, including the data and source code. A challenge in performing this step could be making everything easily accessible and organized.
+\end{enumerate}
+
+4. 
+```{r}
+library(data.table)
+library(curl)
+covid_raw <- fread("https://opendata.ecdc.europa.eu/covid19/casedistribution/csv")
+us <- covid_raw[covid_raw$countriesAndTerritories == 'United_States_of_America',]
+us_filtered <- us[us$month %in% c(6:7),]
+us_filtered$index <- rev(1:dim(us_filtered)[1]) 
+fit<-lm(`Cumulative_number_for_14_days_of_COVID-19_cases_per_100000`~index, data=us_filtered)
+```
+ai.
+``` {r}
+library(knitr)
+kable(summary(us_filtered))
+```
+There are missing values. We have limited ourselves to 61 time points.
+
+aii. 
+```{r}
+library(stargazer)
+stargazer(fit)
+```
+\begin{table}[!htbp] \centering
+\caption{}
+\label{}
+\begin{tabular}{@{\extracolsep{5pt}}lc}
+\\[-1.8ex]\hline
+\hline \\[-1.8ex]
+& \multicolumn{1}{c}{\textit{Dependent variable:}} \\
+\cline{2-2}
+\\[-1.8ex] &`Cumulative\_number\_for\_14\_days\_of\_COVID-19\_cases\_per\_100000`\\
+\hline \\[-1.8ex]
+index & 4.107$^{***}$ \\
+& (0.145) \\
+& \\
+Constant & 42.853$^{***}$ \\
+& (5.165) \\
+& \\
+\hline \\[-1.8ex]
+Observations & 61 \\
+R$^{2}$ & 0.932 \\
+Adjusted R$^{2}$ & 0.930 \\
+Residual Std. Error & 19.922 (df = 59) \\
+F Statistic & 803.464$^{***}$ (df = 1; 59) \\
+\hline
+\hline \\[-1.8ex]
+\textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\
+\end{tabular} 
+\end{table}
+
+b.
+```{r}
+library(broom)
+fit.diags <- broom::augment(fit)
+par(mfrow=c(2,2))
+plot(fit.diags$.fitted,fit.diags$.resid, main="Residual vs Fitted")
+plot(fit.diags$.fitted,sqrt(abs(fit.diags$.std.resid)),main="Normal Q-Q")
+qqnorm(fit.diags$.std.resid, main="Scale-Location")
+plot(fit.diags$.hat,fit.diags$.std.resid, main="Residuals vs Leverage")
+```
+c.
+```{r}
+acf(fit$residuals,main="ACF Plot")
+```
+
+
+
