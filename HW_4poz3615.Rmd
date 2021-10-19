@@ -1,0 +1,304 @@
+---
+title: "HW4_poz3615"
+author: "Piper Zimmerman"
+date: "October 12, 2021"
+output: pdf_document
+---
+\textbf{a.}
+
+```{r message=FALSE, echo=FALSE,comment=NA}
+library(tidyverse)
+library(ggplot2)
+# Read in data
+parta<-read.csv("https://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/ThicknessGauge.dat",header=FALSE,sep=" ")
+# Taking only the rows of observations
+parta<-slice(parta,3:12)
+# Divide data in order to rbind
+partao1<-select(parta,c(2,3))
+partao1<-data.frame(Response=unlist(partao1))
+partao2<-select(parta,c(4,5))
+partao2<-data.frame(Response=unlist(partao2))
+partao3<-select(parta,c(6,7))
+partao3<-data.frame(Response=unlist(partao3))
+# rbind
+parta<-rbind(partao1,partao2)
+parta<-rbind(parta,partao3)
+# Add part and operator columns
+parta$Part<-rep(1:10,2)
+parta$Operator<-c(rep(1,20),rep(2,20),rep(3,20))
+parta$Part<-as.factor(parta$Part)
+parta$Operator<-as.factor(parta$Operator)
+print(parta,row.names=FALSE)
+# Plot
+ggplot(parta, aes(x=Part,y=Response,color=Operator))+
+       geom_point(size=3)+
+  theme_bw()+
+  ggtitle("Graph of Part and Response by Operator")
+# Summary Table
+table(summary(parta))
+# Kable
+knitr::kable(head(parta),caption="Measurements of Wall Thickness by Operator")
+```
+
+\textbf{b.}
+
+```{r message=FALSE, echo=FALSE,comment=NA}
+# Read in data
+partb<-read.csv("https://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/BrainandBodyWeight.dat", header=TRUE, sep=" ")
+# Ensure it's a data frame
+partb<-as.data.frame(partb)
+# Name the columns uniquely
+names(partb)<-c("body.weight1","brain.weight1","body.weight2","brain.weight2","body.weight3","brain.weight3")
+# Separating brain and body weight
+partbbrain<-select(partb, c(2,4,6))
+partbbody<-select(partb, c(1,3,5))
+# Combining the data
+partb<-cbind(partbbrain,partbbody)
+# Stacking the brain and body weight
+partb<-data.frame(stack(partb[1:3]),stack(partb[4:6]))
+# Getting rid of the body weight and brain weight columns
+partb<-partb[c(1,3)]
+# Renaming finished columns
+names(partb)<-c("brain.wt","body.wt")
+# Omitting NA row at the bottom
+partb<-partb[1:62,]
+print(partb,row.names=FALSE)
+# Plot
+plot(partb,main="Plot of Brain Weight vs Body Weight")
+# Summary table
+table(summary(partb))
+# Kable
+knitr::kable(head(partb),caption="Brain and Body Weight in Kilograms of 62 Species")
+```
+
+\textbf{c.}
+
+```{r message=FALSE, echo=FALSE, warning=FALSE,comment=NA}
+library(data.table)
+# Read in data
+partc<-fread("https://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/LongJumpData.dat", sep=" ",sep2=" ",check.names=TRUE)
+# Get rid of NA columns
+partc<-select(partc,where(is.integer),where(is.numeric))
+# Separate columns to row bind
+partc1<-select(partc,c(Year,Long))
+names(partc1)<-c("Year", "Long Jump")
+partc2<-select(partc,c(Jump,Year.1))
+names(partc2)<-c("Year", "Long Jump")
+partc3<-select(partc,c(Long.1,Jump.1))
+names(partc3)<-c("Year", "Long Jump")
+partc4<-select(partc,c(Year.2,Long.2))
+names(partc4)<-c("Year", "Long Jump")
+# Row bind
+partcrb1<-rbind(partc1,partc2)
+partcrb2<-rbind(partcrb1,partc3)
+partcrb3<-rbind(partcrb2,partc4)
+partc<-as.data.frame(partcrb3)
+# Get rid of NA rows
+partc<-na.omit(partc)
+print(partc,row.names=FALSE)
+# Plot
+plot(partc,main="Plot of Year vs Long Jump")
+# Summary table
+table(summary(partc))
+# Kable
+knitr::kable(head(partc), caption="Olympic Men Gold Medalist Long Jump")
+```
+
+\textbf{d.}
+
+```{r message=FALSE, echo=FALSE,comment=NA,warning=FALSE}
+# Read in data
+partd<-fread("https://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/tomato.dat")
+partd1<-partd[,c(1,2)] %>% separate('10000',c("y1","y2","y3"),sep=",")
+partd1<-mutate(partd1,Density=rep(10000,2))
+partd2<-partd[,c(1,3)] %>% separate('20000',c("y1","y2","y3"),sep=",")
+partd2<-mutate(partd2,Density=rep(20000,2))
+partd3<-partd[,c(1,4)] %>% separate('30000',c("y1","y2","y3"),sep=",")
+partd3<-mutate(partd3,Density=rep(30000,2))
+partda<-rbind(partd1,partd2)
+partd<-rbind(partda,partd3)
+partd<-rename(partd,"Type"="V1")
+partd<-gather(partd,key="Measurement",value="Yield","y1","y2","y3")
+partd<-select(partd,c(1,2,4))
+print(partd,row.names=FALSE)
+# Plot
+ggplot(partd, aes(x=Density,y=Yield,color=Type))+
+       geom_point(size=3)+
+  theme_bw()+
+  ggtitle("Graph of Density and Yield by Type")
+# Summary Table
+table(summary(partd))
+# Kable
+knitr::kable(head(partd), caption="Yield of Plant Variety")
+```
+
+\textbf{e.}
+
+```{r message=FALSE, echo=FALSE,comment=NA,warning=FALSE}
+# Read in data
+parte<-fread("https://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/LarvaeControl.dat",header=TRUE, sep=" ", sep2=" ")
+parte<-as.data.frame(parte)
+# Create treatment and age column
+parte<-add_column(parte,Treatment=rep(1,8),.after="Block")
+parte<-add_column(parte,Age=rep(1,8),.after="Treatment")
+# Select the first set of responses
+parte1<-select(parte,1:4)
+parte1<-rename(parte1,"Response"="1")
+# Create a vector out of the rest of the responses
+parte2<-select(parte,5:13)
+parte2<-data.frame(Response=unlist(parte2))
+# Create block, treatment, and age columns to get ready to row bind
+parte2<-add_column(parte2,Block=rep(1:8,9), .before="Response")
+parte2<-add_column(parte2,Age=c(rep(1,32),rep(2,40)),.after="Block")
+parte2<-add_column(parte2,Treatment=c(rep(2,8),rep(3,8),rep(4,8),rep(5,8),rep(1,8),rep(2,8),rep(3,8),rep(4,8),rep(5,8)),.after="Block")
+# Row bind to create one data set
+parte<-rbind(parte1,parte2)
+parte$Age<-as.factor(parte$Age)
+parte$Block<-as.factor(parte$Block)
+parte$Treatment<-as.factor(parte$Treatment)
+print(parte,row.names=FALSE)
+# Plot
+ggplot(parte, aes(x=Treatment,y=Response,color=Block,shape=Age))+
+       geom_point(size=3)+
+  theme_bw()+
+  ggtitle("Graph of Treatment and Response by Age and Block")
+# Summary Table
+table(summary(parte))
+# Kable
+knitr::kable(head(parte),caption="Larvae Count for Five Treatments, Eight Blocks, and Two Ages")
+```
+
+\textbf{Appendix}
+```{r eval=FALSE}
+##a.
+library(tidyverse)
+library(ggplot2)
+# Read in data
+parta<-read.csv("https://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/ThicknessGauge.dat",header=FALSE,sep=" ")
+# Taking only the rows of observations
+parta<-slice(parta,3:12)
+# Divide data in order to rbind
+partao1<-select(parta,c(2,3))
+partao1<-data.frame(Response=unlist(partao1))
+partao2<-select(parta,c(4,5))
+partao2<-data.frame(Response=unlist(partao2))
+partao3<-select(parta,c(6,7))
+partao3<-data.frame(Response=unlist(partao3))
+# rbind
+parta<-rbind(partao1,partao2)
+parta<-rbind(parta,partao3)
+# Add part and operator columns
+parta$Part<-rep(1:10,2)
+parta$Operator<-c(rep(1,20),rep(2,20),rep(3,20))
+parta$Part<-as.factor(parta$Part)
+parta$Operator<-as.factor(parta$Operator)
+print(parta,row.names=FALSE)
+# Plot
+ggplot(parta, aes(x=Part,y=Response,color=Operator))+
+       geom_point(size=3)+
+  theme_bw()+
+  ggtitle("Graph of Part and Response by Operator")
+# Summary Table
+table(summary(parta))
+# Kable
+knitr::kable(head(parta),caption="Measurements of Wall Thickness by Operator")
+##b.
+# Read in data
+partb<-read.csv("https://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/BrainandBodyWeight.dat", header=TRUE, sep=" ")
+# Ensure it's a data frame
+partb<-as.data.frame(partb)
+# Name the columns uniquely
+names(partb)<-c("body.weight1","brain.weight1","body.weight2","brain.weight2","body.weight3","brain.weight3")
+# Separating brain and body weight
+partbbrain<-select(partb, c(2,4,6))
+partbbody<-select(partb, c(1,3,5))
+# Combining the data
+partb<-cbind(partbbrain,partbbody)
+# Stacking the brain and body weight
+partb<-data.frame(stack(partb[1:3]),stack(partb[4:6]))
+# Getting rid of the body weight and brain weight columns
+partb<-partb[c(1,3)]
+# Renaming finished columns
+names(partb)<-c("brain.wt","body.wt")
+# Omitting NA row at the bottom
+partb<-partb[1:62,]
+print(partb,row.names=FALSE)
+# Plot
+plot(partb,main="Plot of Brain Weight vs Body Weight")
+# Summary table
+table(summary(partb))
+# Kable
+knitr::kable(head(partb),caption="Brain and Body Weight in Kilograms of 62 Species")
+##c.
+library(data.table)
+# Read in data
+partc<-fread("https://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/LongJumpData.dat", sep=" ",sep2=" ",check.names=TRUE)
+# Get rid of NA columns
+partc<-select(partc,where(is.integer),where(is.numeric))
+# Separate columns to row bind
+partc1<-select(partc,c(Year,Long))
+names(partc1)<-c("Year", "Long Jump")
+partc2<-select(partc,c(Jump,Year.1))
+names(partc2)<-c("Year", "Long Jump")
+partc3<-select(partc,c(Long.1,Jump.1))
+names(partc3)<-c("Year", "Long Jump")
+partc4<-select(partc,c(Year.2,Long.2))
+names(partc4)<-c("Year", "Long Jump")
+# Row bind
+partcrb1<-rbind(partc1,partc2)
+partcrb2<-rbind(partcrb1,partc3)
+partcrb3<-rbind(partcrb2,partc4)
+partc<-as.data.frame(partcrb3)
+# Get rid of NA rows
+partc<-na.omit(partc)
+print(partc,row.names=FALSE)
+# Plot
+plot(partc,main="Plot of Year vs Long Jump")
+# Summary table
+table(summary(partc))
+# Kable
+knitr::kable(head(partc), caption="Olympic Men Gold Medalist Long Jump")
+##d.
+
+##e.
+# Read in data
+parte<-fread("https://www2.isye.gatech.edu/~jeffwu/wuhamadabook/data/LarvaeControl.dat",header=TRUE, sep=" ", sep2=" ")
+parte<-as.data.frame(parte)
+# Create treatment and age column
+parte<-add_column(parte,Treatment=rep(1,8),.after="Block")
+parte<-add_column(parte,Age=rep(1,8),.after="Treatment")
+# Select the first set of responses
+parte1<-select(parte,1:4)
+parte1<-rename(parte1,"Response"="1")
+# Create a vector out of the rest of the responses
+parte2<-select(parte,5:13)
+parte2<-data.frame(Response=unlist(parte2))
+# Create block, treatment, and age columns to get ready to row bind
+parte2<-add_column(parte2,Block=rep(1:8,9), .before="Response")
+parte2<-add_column(parte2,Age=c(rep(1,32),rep(2,40)),.after="Block")
+parte2<-add_column(parte2,Treatment=c(rep(2,8),rep(3,8),rep(4,8),rep(5,8),rep(1,8),rep(2,8),rep(3,8),rep(4,8),rep(5,8)),.after="Block")
+# Row bind to create one data set
+parte<-rbind(parte1,parte2)
+parte$Age<-as.factor(parte$Age)
+parte$Block<-as.factor(parte$Block)
+parte$Treatment<-as.factor(parte$Treatment)
+print(parte,row.names=FALSE)
+# Plot
+ggplot(parte, aes(x=Treatment,y=Response,color=Block,shape=Age))+
+       geom_point(size=3)+
+  theme_bw()+
+  ggtitle("Graph of Treatment and Response by Age and Block")
+# Summary Table
+table(summary(parte))
+# Kable
+knitr::kable(head(parte),caption="Larvae Count for Five Treatments, Eight Blocks, and Two Ages")
+```
+
+
+
+
+
+
+
+
+
